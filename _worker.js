@@ -12,6 +12,19 @@ let sub = '';// 避免项目被滥用，现已取消内置订阅器
 let subconverter = 'SUBAPI.fxxk.dedyn.io';// clash订阅转换后端，目前使用CM的订阅转换功能。自带虚假uuid和host订阅。
 let subconfig = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/config/ACL4SSR_Online_Mini_MultiMode.ini"; //订阅配置文件
 let subProtocol = 'https';
+let airportCodeUrl = '';
+let airportMap = {};
+
+const countryMap = {
+	'PL': '波兰',
+	'US': '美国',
+	'KR': '韩国',
+	'TW': '台湾',
+	'JP': '日本',
+	'SG': '新加坡',
+	'HK': '香港'
+};
+
 // The user name and password do not contain special characters
 // Setting the address will ignore proxyIP
 // Example:  user:pass@host:port  or  host:port
@@ -107,6 +120,30 @@ export default {
 			socks5Address = socks5s[Math.floor(Math.random() * socks5s.length)];
 			socks5Address = socks5Address.split('//')[1] || socks5Address;
 			if (env.CFPORTS) httpsPorts = await ADD(env.CFPORTS);
+
+			airportCodeUrl = env.AIRPORT_CODE_URL || airportCodeUrl;
+			console.info('获取机场地址:', airportCodeUrl);
+
+			await fetch(airportCodeUrl)
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Network response was not ok ' + response.statusText);
+					}
+					return response.text();  // 获取返回的纯文本
+				})
+				.then(text => {
+					console.log('Raw response:', text);  // 先打印原始返回的文本
+					try {
+						airportMap = JSON.parse(text);  // 尝试将文本解析为 JSON 对象
+						console.log(airportMap);
+					} catch (error) {
+						console.error('Error parsing JSON:', error);
+					}
+				})
+				.catch(error => {
+					console.error('There was a problem with the fetch operation:', error);
+				});
+
 			sub = env.SUB || sub;
 			subconverter = env.SUBAPI || subconverter;
 			if( subconverter.includes("http://") ){
@@ -1726,7 +1763,7 @@ async function getAddressescsv(tls) {
 				if (columns[tlsIndex].toUpperCase() === tls && parseFloat(columns[speedIndex]) > DLS) {
 					const ipAddress = columns[ipAddressIndex];
 					const port = columns[portIndex];
-					const dataCenter = columns[dataCenterIndex];
+					const dataCenter = getLocationInfo(columns[dataCenterIndex]);
 			
 					const formattedAddress = `${ipAddress}:${port}#${dataCenter}`;
 					newAddressescsv.push(formattedAddress);
@@ -1796,7 +1833,7 @@ function subAddresses(host,UUID,noTLS,newAddressesapi,newAddressescsv,newAddress
 				}
 			}
 			if (port == "-1") port = "80";
-			
+
 			let 伪装域名 = host ;
 			let 最终路径 = '/?ed=2560' ;
 			let 节点备注 = '';
@@ -1853,13 +1890,13 @@ function subAddresses(host,UUID,noTLS,newAddressesapi,newAddressescsv,newAddress
 			}
 		}
 		if (port == "-1") port = "443";
-		
+
 		let 伪装域名 = host ;
 		let 最终路径 = '/?ed=2560' ;
 		let 节点备注 = '';
 		const matchingProxyIP = proxyIPPool.find(proxyIP => proxyIP.includes(address));
 		if (matchingProxyIP) 最终路径 += `&proxyip=${matchingProxyIP}`;
-		
+
 		if(proxyhosts.length > 0 && (伪装域名.includes('.workers.dev') || 伪装域名.includes('pages.dev'))) {
 			最终路径 = `/${伪装域名}${最终路径}`;
 			伪装域名 = proxyhosts[Math.floor(Math.random() * proxyhosts.length)];
