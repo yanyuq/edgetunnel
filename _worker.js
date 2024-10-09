@@ -1718,6 +1718,18 @@ async function getAddressesapi(api) {
 	return newAddressesapi;
 }
 
+function getLocationInfo(code) {
+	if (airportMap[code]) {
+		const airport = airportMap[code];
+		console.info('机场:', airport);
+		return `${airport.country}-${airport.name}-${code}`;
+	} else if (countryMap[code]) {
+		return countryMap[code];
+	} else {
+		return code;
+	}
+}
+
 async function getAddressescsv(tls) {
 	if (!addressescsv || addressescsv.length === 0) {
 		return [];
@@ -1754,18 +1766,29 @@ async function getAddressescsv(tls) {
 				console.error('CSV文件缺少必需的字段');
 				continue;
 			}
+			let csvName = '';
+			if (csvUrl.toUpperCase().includes("CU.CSV")) {
+				csvName = 'CU-';
+			} else if (csvUrl.toUpperCase().includes("CT.CSV")) {
+				csvName = 'CT-';
+			}
 		
 			// 从第二行开始遍历CSV行
 			for (let i = 1; i < lines.length; i++) {
 				const columns = lines[i].split(',');
 				const speedIndex = columns.length - 1; // 最后一个字段
 				// 检查TLS是否为"TRUE"且速度大于DLS
-				if (columns[tlsIndex].toUpperCase() === tls && parseFloat(columns[speedIndex]) > DLS) {
+				// 如果测试单位是 KB 则用原值除以 1000，否则认为单位是MB
+				let speedNum = columns[speedIndex].toUpperCase().includes('KB') ?
+					parseFloat(columns[speedIndex]) / 1000 : parseFloat(columns[speedIndex]);
+				if (columns[tlsIndex].toUpperCase() === tls && speedNum >= DLS) {
 					const ipAddress = columns[ipAddressIndex];
 					const port = columns[portIndex];
 					const dataCenter = getLocationInfo(columns[dataCenterIndex]);
+					// 取测速结果整数部分
+					let speedInt = Math.floor(speedNum);
 			
-					const formattedAddress = `${ipAddress}:${port}#${dataCenter}`;
+					const formattedAddress = `${ipAddress}:${port}#${dataCenter}-${csvName}${speedInt}`;
 					newAddressescsv.push(formattedAddress);
 					if (csvUrl.includes('proxyip=true') && columns[tlsIndex].toUpperCase() == 'true' && !httpsPorts.includes(port)) {
 						// 如果URL带有'proxyip=true'，则将内容添加到proxyIPPool
