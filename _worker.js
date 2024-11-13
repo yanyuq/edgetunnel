@@ -1456,46 +1456,44 @@ async function getVLESSConfig(userID, hostName, sub, UA, RproxyIP, _url, env) {
 		else 订阅器 += `\nSUBAPI（订阅转换后端）: ${subProtocol}://${subconverter}\nSUBCONFIG（订阅转换配置文件）: ${subconfig}`;
 		const 动态UUID = (uuid != userID) ? `TOKEN: ${uuid}\nUUIDNow: ${userID}\nUUIDLow: ${userIDLow}\n${userIDTime}TIME（动态UUID有效时间）: ${effectiveTime} 天\nUPTIME（动态UUID更新时间）: ${updateTime} 时（北京时间）\n\n` : `${userIDTime}`;
 		return `
-<html>
-<body>
-<br />################################################################
-<br />持续分享更多优质节点 请加 telegram 交流群
-<br />><a href="https://t.me/xiaoo_mo" target="_blank">https://t.me/xiaoo_mo</a>
-<br />################################################################
-<br />Subscribe / sub 订阅地址, 支持 Base64、clash-meta、sing-box 订阅格式
-<br />---------------------------------------------------------------
-<br />快速自适应订阅地址:
-<br />https://${proxyhost}${hostName}/${uuid}
-<br />https://${proxyhost}${hostName}/${uuid}?sub
-<br />
-<br />Base64订阅地址:
-<br />https://${proxyhost}${hostName}/${uuid}?b64
-<br />https://${proxyhost}${hostName}/${uuid}?base64
-<br />
-<br />clash订阅地址:
-<br />https://${proxyhost}${hostName}/${uuid}?clash
-<br />
-<br />singbox订阅地址:
-<br />https://${proxyhost}${hostName}/${uuid}?sb
-<br />https://${proxyhost}${hostName}/${uuid}?singbox
-<br />---------------------------------------------------------------
-<br />################################################################
-<br />${FileName} ################################################################
-<br />v2ray
-<br />---------------------------------------------------------------
-<br />${v2ray}
-<br />---------------------------------------------------------------
-<br />################################################################
-<br />clash-meta
-<br />---------------------------------------------------------------
-<br />${clash}
-<br />---------------------------------------------------------------
-<br />################################################################
-<br />持续分享更多优质节点 请加 telegram 交流群
-<br />><a href="https://t.me/xiaoo_mo" target="_blank">https://t.me/xiaoo_mo</a>
-<br />################################################################
-</body>
-</html>
+
+
+################################################################
+持续分享更多优质节点 请加 telegram 交流群
+https://t.me/xiaoo_mo
+################################################################
+Subscribe / sub 订阅地址, 支持 Base64、clash-meta、sing-box 订阅格式
+---------------------------------------------------------------
+快速自适应订阅地址:
+https://${proxyhost}${hostName}/${uuid}
+https://${proxyhost}${hostName}/${uuid}?sub
+
+Base64订阅地址:
+https://${proxyhost}${hostName}/${uuid}?b64
+https://${proxyhost}${hostName}/${uuid}?base64
+
+clash订阅地址:
+https://${proxyhost}${hostName}/${uuid}?clash
+
+singbox订阅地址:
+https://${proxyhost}${hostName}/${uuid}?sb
+https://${proxyhost}${hostName}/${uuid}?singbox
+---------------------------------------------------------------
+################################################################
+${FileName} ################################################################
+v2ray
+---------------------------------------------------------------
+${v2ray}
+---------------------------------------------------------------
+################################################################
+clash-meta
+---------------------------------------------------------------
+${clash}
+---------------------------------------------------------------
+################################################################
+持续分享更多优质节点 请加 telegram 交流群
+https://t.me/xiaoo_mo
+################################################################
 `;
 	} else {
 		if (typeof fetch != 'function') {
@@ -1806,7 +1804,7 @@ async function getAddressescsv(tls) {
 					// 取测速结果整数部分
 					let speedInt = Math.floor(speedNum);
 			
-					const formattedAddress = `${ipAddress}:${port}#${dataCenter}-${csvName}${speedInt}`;
+					const formattedAddress = `${ipAddress}:${port}#${dataCenter}`;
 					newAddressescsv.push(formattedAddress);
 					if (csvUrl.includes('proxyip=true') && columns[tlsIndex].toUpperCase() == 'true' && !httpsPorts.includes(port)) {
 						// 如果URL带有'proxyip=true'，则将内容添加到proxyIPPool
