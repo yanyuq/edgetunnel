@@ -1431,6 +1431,9 @@ async function getVLESSConfig(userID, hostName, sub, UA, RproxyIP, _url) {
 
 		return `
 ################################################################
+持续分享更多优质节点 请加 telegram 交流群
+<a href="https://t.me/xiaoo_mo" target="_blank">https://t.me/xiaoo_mo</a>
+################################################################
 Subscribe / sub 订阅地址, 支持 Base64、clash-meta、sing-box 订阅格式
 ---------------------------------------------------------------
 快速自适应订阅地址:
@@ -1456,7 +1459,6 @@ UUID: ${userID}
 FKID: ${fakeUserID}
 UA: ${UA}
 
-${订阅器}
 SUBAPI（订阅转换后端）: ${subProtocol}://${subconverter}
 SUBCONFIG（订阅转换配置文件）: ${subconfig}
 ---------------------------------------------------------------
@@ -1471,12 +1473,8 @@ clash-meta
 ${clash}
 ---------------------------------------------------------------
 ################################################################
-telegram 交流群 技术大佬~在线发牌!
-https://t.me/CMLiussss
----------------------------------------------------------------
-github 项目地址 Star!Star!Star!!!
-https://github.com/cmliu/edgetunnel
----------------------------------------------------------------
+持续分享更多优质节点 请加 telegram 交流群
+<a href="https://t.me/xiaoo_mo" target="_blank">https://t.me/xiaoo_mo</a>
 ################################################################
 `;
 	} else {
@@ -1543,10 +1541,10 @@ https://github.com/cmliu/edgetunnel
 
 		if (!userAgent.includes(('CF-Workers-SUB').toLowerCase())){
 			if ((userAgent.includes('clash') && !userAgent.includes('nekobox')) || ( _url.searchParams.has('clash') && !userAgent.includes('subconverter'))) {
-				url = `${subProtocol}://${subconverter}/sub?target=clash&url=${encodeURIComponent(url)}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true&expand=false&classic=true`;
+				url = `${subProtocol}://${subconverter}/sub?target=clash&url=${encodeURIComponent(url)}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
 				isBase64 = false;
 			} else if (userAgent.includes('sing-box') || userAgent.includes('singbox') || (( _url.searchParams.has('singbox') || _url.searchParams.has('sb')) && !userAgent.includes('subconverter'))) {
-				url = `${subProtocol}://${subconverter}/sub?target=singbox&url=${encodeURIComponent(url)}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true&expand=false&classic=true`;
+				url = `${subProtocol}://${subconverter}/sub?target=singbox&url=${encodeURIComponent(url)}&insert=false&config=${encodeURIComponent(subconfig)}&emoji=true&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
 				isBase64 = false;
 			}
 		}
