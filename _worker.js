@@ -1705,7 +1705,7 @@ async function 整理优选列表(api) {
 function getLocationInfo(code) {
 	if (airportMap[code]) {
 		const airport = airportMap[code];
-		console.info('机场:', airport);
+		// console.info('机场:', airport);
 		return `${airport.country}-${airport.name}-${code}`;
 	} else if (countryMap[code]) {
 		return countryMap[code];
