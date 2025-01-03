@@ -47,6 +47,13 @@ let path = '/?ed=2560';
 let 动态UUID;
 let link = [];
 let banHosts = [atob('c3BlZWQuY2xvdWRmbGFyZS5jb20=')];
+
+let airportCodeUrl = 'https://raw.githubusercontent.com/yanyuq/edgetunnel/backup/customize/airport.json';
+let countryCodeUrl = 'https://raw.githubusercontent.com/yanyuq/edgetunnel/backup/customize/country.json';
+let airportMap = {};
+
+let countryMap = {};
+
 export default {
 	async fetch(request, env, ctx) {
 		try {
@@ -109,6 +116,54 @@ export default {
 			} else {
 				RproxyIP = env.RPROXYIP || !proxyIP ? 'true' : 'false';
 			}
+
+			if (env.CFPORTS) httpsPorts = await ADD(env.CFPORTS);
+
+			airportCodeUrl = env.AIRPORT_CODE_URL || airportCodeUrl;
+			// console.info('获取机场地址:', airportCodeUrl);
+
+			await fetch(airportCodeUrl)
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Network response was not ok ' + response.statusText);
+					}
+					return response.text();  // 获取返回的纯文本
+				})
+				.then(text => {
+					// console.log('Raw response:', text);  // 先打印原始返回的文本
+					try {
+						airportMap = JSON.parse(text);  // 尝试将文本解析为 JSON 对象
+						// console.log(airportMap);
+					} catch (error) {
+						console.error('Error parsing JSON:', error);
+					}
+				})
+				.catch(error => {
+					console.error('There was a problem with the fetch operation:', error);
+				});
+
+			countryCodeUrl = env.COUNTRY_CODE_URL || countryCodeUrl;
+			// console.info('获取机场地址:', airportCodeUrl);
+
+			await fetch(countryCodeUrl)
+				.then(response => {
+					if (!response.ok) {
+						throw new Error('Network response was not ok ' + response.statusText);
+					}
+					return response.text();  // 获取返回的纯文本
+				})
+				.then(text => {
+					// console.log('Raw response:', text);  // 先打印原始返回的文本
+					try {
+						countryMap = JSON.parse(text);  // 尝试将文本解析为 JSON 对象
+						// console.log(countryMap);
+					} catch (error) {
+						console.error('Error parsing JSON:', error);
+					}
+				})
+				.catch(error => {
+					console.error('There was a problem with the fetch operation:', error);
+				});
 
 			const upgradeHeader = request.headers.get('Upgrade');
 			const url = new URL(request.url);
@@ -736,7 +791,7 @@ async function remoteSocketToWS(remoteSocket, webSocket, 维列斯ResponseHeader
 
 /**
  * 将 Base64 编码的字符串转换为 ArrayBuffer
- * 
+ *
  * @param {string} base64Str Base64 编码的输入字符串
  * @returns {{ earlyData: ArrayBuffer | undefined, error: Error | null }} 返回解码后的 ArrayBuffer 或错误
  */
@@ -1047,7 +1102,7 @@ async function socks5Connect(addressType, addressRemote, portRemote, log) {
 /**
  * SOCKS5 代理地址解析器
  * 此函数用于解析 SOCKS5 代理地址字符串，提取出用户名、密码、主机名和端口号
- * 
+ *
  * @param {string} address SOCKS5 代理地址，格式可以是：
  *   - "username:password@hostname:port" （带认证）
  *   - "hostname:port" （不需认证）
@@ -1099,7 +1154,7 @@ function socks5AddressParser(address) {
 /**
  * 恢复被伪装的信息
  * 这个函数用于将内容中的假用户ID和假主机名替换回真实的值
- * 
+ *
  * @param {string} content 需要处理的内容
  * @param {string} userID 真实的用户ID
  * @param {string} hostName 真实的主机名
@@ -1113,17 +1168,27 @@ function 恢复伪装信息(content, userID, hostName, isBase64) {
 	// 将所有出现的假用户ID和假主机名替换为真实的值
 	content = content.replace(new RegExp(fakeUserID, 'g'), userID)
 		.replace(new RegExp(fakeHostName, 'g'), hostName);
+	// 替换名称
+	content = replaceLocationTagsAndRemoveSuffix(content);
 
 	if (isBase64) content = btoa(content);  // 如果原内容是Base64编码的，处理完后再次编码
 
 	return content;
 }
 
+// 处理文本的函数
+function replaceLocationTagsAndRemoveSuffix(text) {
+	return text.replace(/#([A-Z]{2,3})([^A-Z]|$).*?/g, (match, code) => {
+		const location = getLocationInfo(code);
+		return `#${location}`;
+	});
+}
+
 /**
  * 双重MD5哈希函数
  * 这个函数对输入文本进行两次MD5哈希，增强安全性
  * 第二次哈希使用第一次哈希结果的一部分作为输入
- * 
+ *
  * @param {string} 文本 要哈希的文本
  * @returns {Promise<string>} 双重哈希后的小写十六进制字符串
  */
@@ -1521,7 +1586,7 @@ async function 生成配置信息(userID, hostName, sub, UA, RproxyIP, _url, env
 
 		if (!userAgent.includes(('CF-Workers-SUB').toLowerCase())) {
 			if ((userAgent.includes('clash') && !userAgent.includes('nekobox')) || (_url.searchParams.has('clash') && !userAgent.includes('subconverter'))) {
-				url = `${subProtocol}://${subConverter}/sub?target=clash&url=${encodeURIComponent(url)}&insert=false&config=${encodeURIComponent(subConfig)}&emoji=${subEmoji}&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
+				url = `${subProtocol}://${subConverter}/sub?target=clash&url=${encodeURIComponent(url)}&insert=false&config=${encodeURIComponent(subConfig)}&emoji=${subEmoji}&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true&expand=false&classic=true`;
 				isBase64 = false;
 			} else if (userAgent.includes('sing-box') || userAgent.includes('singbox') || ((_url.searchParams.has('singbox') || _url.searchParams.has('sb')) && !userAgent.includes('subconverter'))) {
 				url = `${subProtocol}://${subConverter}/sub?target=singbox&url=${encodeURIComponent(url)}&insert=false&config=${encodeURIComponent(subConfig)}&emoji=${subEmoji}&list=false&tfo=false&scv=true&fdn=false&sort=false&new_name=true`;
@@ -1637,6 +1702,18 @@ async function 整理优选列表(api) {
 	return newAddressesapi;
 }
 
+function getLocationInfo(code) {
+	if (airportMap[code]) {
+		const airport = airportMap[code];
+		// console.info('机场:', airport);
+		return `${airport.country}-${airport.name}-${code}`;
+	} else if (countryMap[code]) {
+		return countryMap[code];
+	} else {
+		return code;
+	}
+}
+
 async function 整理测速结果(tls) {
 	if (!addressescsv || addressescsv.length === 0) {
 		return [];
@@ -1674,17 +1751,29 @@ async function 整理测速结果(tls) {
 				continue;
 			}
 
+			let csvName = '';
+			if (csvUrl.toUpperCase().includes("CU.CSV")) {
+				csvName = 'CU-';
+			} else if (csvUrl.toUpperCase().includes("CT.CSV")) {
+				csvName = 'CT-';
+			}
+
 			// 从第二行开始遍历CSV行
 			for (let i = 1; i < lines.length; i++) {
 				const columns = lines[i].split(',');
 				const speedIndex = columns.length - 1; // 最后一个字段
 				// 检查TLS是否为"TRUE"且速度大于DLS
-				if (columns[tlsIndex].toUpperCase() === tls && parseFloat(columns[speedIndex]) > DLS) {
+				// 如果测试单位是 KB 则用原值除以 1000，否则认为单位是MB
+				let speedNum = columns[speedIndex].toUpperCase().includes('KB') ?
+					parseFloat(columns[speedIndex]) / 1000 : parseFloat(columns[speedIndex]);
+				if (columns[tlsIndex].toUpperCase() === tls && speedNum >= DLS) {
 					const ipAddress = columns[ipAddressIndex];
 					const port = columns[portIndex];
-					const dataCenter = columns[dataCenterIndex];
+					const dataCenter = getLocationInfo(columns[dataCenterIndex]);
+					// 取测速结果整数部分
+					let speedInt = Math.floor(speedNum);
 
-					const formattedAddress = `${ipAddress}:${port}#${dataCenter}`;
+					const formattedAddress = `${ipAddress}:${port}#${dataCenter}-${csvName}${speedInt}`;
 					newAddressescsv.push(formattedAddress);
 					if (csvUrl.includes('proxyip=true') && columns[tlsIndex].toUpperCase() == 'true' && !httpsPorts.includes(port)) {
 						// 如果URL带有'proxyip=true'，则将内容添加到proxyIPPool
@@ -1740,6 +1829,9 @@ function 生成本地订阅(host, UUID, noTLS, newAddressesapi, newAddressescsv,
 				address = match[1];
 				port = match[2] || port;
 				addressid = match[3] || address;
+			}
+			if (addressid.length == 3 || addressid.length == 2) {
+				addressid = getLocationInfo(addressid)
 			}
 
 			const httpPorts = ["8080", "8880", "2052", "2082", "2086", "2095"];
