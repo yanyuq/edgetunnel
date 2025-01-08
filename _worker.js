@@ -209,11 +209,11 @@ export default {
 					if (env.URL302) return Response.redirect(env.URL302, 302);
 					else if (env.URL) return await 代理URL(env.URL, url);
 					else return new Response(JSON.stringify(request.cf, null, 4), {
-							status: 200,
-							headers: {
-								'content-type': 'application/json',
-							},
-						});
+						status: 200,
+						headers: {
+							'content-type': 'application/json',
+						},
+					});
 				} else if (路径 == `/${fakeUserID}`) {
 					const fakeConfig = await 生成配置信息(userID, request.headers.get('Host'), sub, 'CF-Workers-SUB', RproxyIP, url, env);
 					return new Response(`${fakeConfig}`, { status: 200 });
@@ -1169,7 +1169,7 @@ function 恢复伪装信息(content, userID, hostName, isBase64) {
 	content = content.replace(new RegExp(fakeUserID, 'g'), userID)
 		.replace(new RegExp(fakeHostName, 'g'), hostName);
 	// 替换名称
-	content = replaceLocationTagsAndRemoveSuffix(content);
+	content = replaceLocationTagsAndRemoveSuffix(content, isBase64);
 
 	if (isBase64) content = btoa(content);  // 如果原内容是Base64编码的，处理完后再次编码
 
@@ -1177,11 +1177,29 @@ function 恢复伪装信息(content, userID, hostName, isBase64) {
 }
 
 // 处理文本的函数
-function replaceLocationTagsAndRemoveSuffix(text) {
-	return text.replace(/#([A-Z]{2,3})([^A-Z]|$).*?/g, (match, code) => {
-		const location = getLocationInfo(code);
-		return `#${location}`;
-	});
+function replaceLocationTagsAndRemoveSuffix(text, isBase64) {
+	if (isBase64) {
+		return text.replace(/#([A-Z]{2,3})([^A-Z]|$).*?/g, (match, code) => {
+			const location = getLocationInfo(code);
+			return `#${location}`;
+		});
+	} else {
+		return text.replace(
+			/({name:\s*\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF])\s*([A-Z]{2,3})[^0-9]*(\d{0,3}),/g,
+			(match, emojis, code, number) => {
+				const locationName = getLocationInfo(code); // 获取地名
+				return `${emojis.trim()} ${locationName} ${number},`;
+			}
+		).replace(
+			/(- \s*\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF])\s*([A-Z]{2,3})[^0-9^-]*(\d{0,3})?\n/g,
+			(match, emojis, code, number) => {
+				const locationName = getLocationInfo(code); // 获取地名
+				return number
+					? `${emojis.trim()} ${locationName} ${number}` + '\n' // 有数字时
+					: `${emojis.trim()} ${locationName}` + '\n';        // 没有数字时
+			}
+		);
+	}
 }
 
 /**

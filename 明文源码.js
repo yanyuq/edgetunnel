@@ -1169,7 +1169,7 @@ function 恢复伪装信息(content, userID, hostName, isBase64) {
 	content = content.replace(new RegExp(fakeUserID, 'g'), userID)
 		.replace(new RegExp(fakeHostName, 'g'), hostName);
 	// 替换名称
-	content = replaceLocationTagsAndRemoveSuffix(content);
+	content = replaceLocationTagsAndRemoveSuffix(content, isBase64);
 
 	if (isBase64) content = btoa(content);  // 如果原内容是Base64编码的，处理完后再次编码
 
@@ -1177,11 +1177,29 @@ function 恢复伪装信息(content, userID, hostName, isBase64) {
 }
 
 // 处理文本的函数
-function replaceLocationTagsAndRemoveSuffix(text) {
-	return text.replace(/#([A-Z]{2,3})([^A-Z]|$).*?/g, (match, code) => {
-		const location = getLocationInfo(code);
-		return `#${location}`;
-	});
+function replaceLocationTagsAndRemoveSuffix(text, isBase64) {
+	if (isBase64) {
+		return text.replace(/#([A-Z]{2,3})([^A-Z]|$).*?/g, (match, code) => {
+			const location = getLocationInfo(code);
+			return `#${location}`;
+		});
+	} else {
+		return text.replace(
+			/({name:\s*\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF])\s*([A-Z]{2,3})[^0-9]*(\d{0,3}),/g,
+			(match, emojis, code, number) => {
+				const locationName = getLocationInfo(code); // 获取地名
+				return `${emojis.trim()} ${locationName} ${number},`;
+			}
+		).replace(
+			/(- \s*\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF])\s*([A-Z]{2,3})[^0-9^-]*(\d{0,3})?\n/g,
+			(match, emojis, code, number) => {
+				const locationName = getLocationInfo(code); // 获取地名
+				return number
+					? `${emojis.trim()} ${locationName} ${number}` + '\n' // 有数字时
+					: `${emojis.trim()} ${locationName}` + '\n';        // 没有数字时
+			}
+		);
+	}
 }
 
 /**
